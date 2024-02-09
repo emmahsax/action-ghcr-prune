@@ -8,8 +8,9 @@ const {
   listOrgContainerVersions,
   listUserContainerVersions,
 } = require('./src/octokit');
-const {getPruningList, prune} = require('./src/pruning');
+const {getMultiPlatPruningList, getPruningList, prune} = require('./src/pruning');
 const {versionFilter} = require('./src/version-filter');
+const {getManifest, createDockerAPIClient, dockerAPIGet} = require('./src/docker-api.js')
 
 const asBoolean = (v) => 'true' == String(v);
 
@@ -63,6 +64,8 @@ const run = async () => {
 
     const container = core.getInput('container');
 
+    const pruneMultiPlatform = asBoolean(core.getInput('prune-multi-platform'));
+
     const dryRun = asBoolean(core.getInput('dry-run'));
 
     const keepLast = Number(core.getInput('keep-last'));
@@ -70,24 +73,42 @@ const run = async () => {
     // For backward compatibility of deprecated input `tag-regex`
     const legacyTagRegex = core.getInput('tag-regex') ? [core.getInput('tag-regex')] : null;
 
+    const pruneUntagged = asBoolean(core.getInput('prune-untagged')) || asBoolean(core.getInput('untagged'))
+
+    if (pruneMultiPlatform && pruneUntagged) {
+      core.setFailed('Inputs `prune-multi-platform` and `prune-untagged` are mutually exclusive and must not both be provided in the same run.');
+      return;
+    }
+
+    /* This can possibly be improved. We need this info for multi-platform due
+       to the docker registry api, but we might be able to autodetect this from
+       the authenticated user */
+    if (pruneMultiPlatform && !(organization || user)) {
+      core.setFailed('Inputs `prune-multi-platform` requires either `organization` or `user` to defined');
+      return;
+    }
+
     const filterOptions = {
       keepTags: core.getMultilineInput('keep-tags'),
       keepTagsRegexes: core.getMultilineInput('keep-tags-regexes'),
       keepYoungerThan: Number(core.getInput('keep-younger-than')) || Number(core.getInput('older-than')),
       pruneTagsRegexes: core.getInput('prune-tags-regexes') ? core.getMultilineInput('prune-tags-regexes') : legacyTagRegex,
-      pruneUntagged: asBoolean(core.getInput('prune-untagged')) || asBoolean(core.getInput('untagged')),
+      pruneUntagged: pruneUntagged,
     };
 
     const octokit = github.getOctokit(token);
 
     let listVersions;
     let pruneVersion;
+    let owner;
     if (user) {
       listVersions = listUserContainerVersions(octokit)(user, container);
       pruneVersion = dryRun ? dryRunDelete : deleteUserContainerVersion(octokit)(user, container);
+      owner = user;
     } else if (organization) {
       listVersions = listOrgContainerVersions(octokit)(organization, container);
       pruneVersion = dryRun ? dryRunDelete : deleteOrgContainerVersion(octokit)(organization, container);
+      owner = organization;
     } else {
       listVersions = listAuthenticatedUserContainerVersions(octokit)(container);
       pruneVersion = dryRun ? dryRunDelete : deleteAuthenticatedUserContainerVersion(octokit)(container);
@@ -95,6 +116,17 @@ const run = async () => {
     const filterVersion = versionFilter(filterOptions);
 
     const pruningList = await getPruningList(listVersions, filterVersion)(keepLast);
+
+    if(pruneMultiPlatform) {
+      const dockerAPIClient = createDockerAPIClient();
+      const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
+      const getManifestByTag = getManifest(dockerAPIGetCmd);
+
+      const multiPlatPruningList = await getMultiPlatPruningList(listVersions, getManifestByTag)(pruningList);
+      if (multiPlatPruningList) {
+        pruningList.push(...multiPlatPruningList);
+      }
+    }
 
     core.info(`Found a total of ${pruningList.length} versions to prune`);
 

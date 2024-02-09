@@ -244,3 +244,36 @@ jobs:
             if (actualPruned !== expectedPruned) {
               core.setFailed(`Expected ${expectedPruned} to be pruned but was: ${actualPruned}`)
             }
+
+      # TODO: Upload multi-platform docker image
+      - name: Should prune tagged versions from many regexes
+        uses: ./ # Itself
+        id: test_prune_multi_platform
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          user: vlaurin
+          container: test-action-ghcr-prune
+          dry-run: true
+          prune-tags-regexes: |
+            ^pr-multi1$
+          keep-tags-regexes: 2$
+          prune-multi-platform: true
+
+
+      - name: Expect 3 tagged versions to be pruned
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const actualCount = ${{ steps.test_prune_many_tags_regexes.outputs.count }};
+            const expectedCount = 3;
+
+            if (actualCount !== expectedCount) {
+              core.setFailed(`Expected ${expectedCount} versions to be pruned but was: ${actualCount}`)
+            }
+
+            const actualPruned = '${{ steps.test_prune_many_tags_regexes.outputs.prunedVersionIds }}';
+            const expectedPruned = '[15452525,15452486,15452388]';
+
+            if (actualPruned !== expectedPruned) {
+              core.setFailed(`Expected ${expectedPruned} to be pruned but was: ${actualPruned}`)
+            }

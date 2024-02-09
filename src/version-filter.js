@@ -41,6 +41,18 @@ const versionFilter = (options) => (version) => {
   return false;
 };
 
+const digestFilter = (digests) => (version) => {
+  const found = digests.find((digest) => version.name == digest);
+
+  if (found) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 module.exports = {
   versionFilter,
+  digestFilter
 };

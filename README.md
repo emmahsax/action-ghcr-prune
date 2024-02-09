@@ -150,6 +150,16 @@ steps:
 
 **Optional** Boolean controlling whether untagged versions should be pruned (`true`) or not (`false`). Defaults to `false`.
 
+#### prunt-multi-platform
+
+**Optional** Boolean controlling whether to prune multi-platform images should
+be pruned (`true`) or not (`false`). Defaults to `false`.
+
+Turning this on will force the removal of the untagged platform variants
+attached to the multi-platform image. Due to variants being untagged you cannot
+use this option with `prune-untagged`. You also must specify either `user` or
+`organization`.
+
 ## Outputs
 
 ### count

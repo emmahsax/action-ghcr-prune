@@ -1,8 +1,42 @@
 const core = require('@actions/core');
+const {digestFilter} = require('./version-filter')
 
 const PAGE_SIZE = 100;
 
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
+
+const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningList) => {
+  core.info('Crawling through pruning list for multi-platform images...');
+
+  const digests = []
+
+  for (const image of pruningList)
+  {
+    const manifest = await getManifest(image.metadata.container.tags[0]);
+    if (manifest.mediaType != "application/vnd.docker.distribution.manifest.list.v2+json")
+    {
+      //not a multi-plat image, so continue
+      continue;
+    }
+
+    for (const subImage of manifest.manifests)
+    {
+      core.info(`Found subimage: ${subImage.digest}`)
+      digests.push(subImage.digest);
+    }
+  }
+
+  if (digests.length) {
+    const filterByDigests = digestFilter(digests);
+    /* keepLast can be 0 here as we already know we are pruning these versions */
+    const newImagesToPrune = getPruningList(listVersions, filterByDigests)(0);
+
+    return newImagesToPrune;
+  }
+  else {
+    return undefined;
+  }
+};
 
 const getPruningList = (listVersions, pruningFilter) => async (keepLast = 0) => {
   let pruningList = [];
@@ -57,4 +91,5 @@ const prune = (pruneVersion) => async (pruningList) => {
 module.exports = {
   getPruningList,
   prune,
+  getMultiPlatPruningList
 };
