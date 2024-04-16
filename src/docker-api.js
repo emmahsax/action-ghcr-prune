@@ -15,6 +15,7 @@ const dockerAPIGet = (client, token, owner, container) => async (resource) => {
   };
 
   console.log("headers:"+headers);
+  console.log("token:"+token);
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
 
