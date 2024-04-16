@@ -22,6 +22,8 @@ const getDockerAuthToken = () => {
 const dockerAPIGet = (client, owner, container) => async (resource) => {
   const token = getDockerAuthToken();
 
+  console.log(`Docker API token: ${token}`)
+
   const headers = {
     Authorization: `Bearer ${token}`
   };
