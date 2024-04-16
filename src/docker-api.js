@@ -9,9 +9,8 @@ const createDockerAPIClient = () => {
 }
 
 const dockerAPIGet = (client, token, owner, container) => async (resource) => {
-  const base64Token = Buffer.from(token).toString('base64');
   const headers = {
-    Authorization: `Bearer ${base64Token}`
+    Authorization: `Bearer ${token}`
   };
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
