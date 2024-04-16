@@ -1,6 +1,5 @@
 
 const http = require('@actions/http-client');
-const core = require('@actions/core');
 const { Buffer } = require('buffer');
 
 const createDockerAPIClient = () => {
