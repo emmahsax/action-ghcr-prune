@@ -13,7 +13,7 @@ const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningLis
   for (const image of pruningList)
   {
     const manifest = await getManifest(image.metadata.container.tags[0]);
-    if (manifest.mediaType != "application/vnd.docker.distribution.manifest.list.v2+json")
+    if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
     {
       //not a multi-plat image, so continue
       continue;
