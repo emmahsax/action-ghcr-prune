@@ -1,6 +1,7 @@
 
 const http = require('@actions/http-client');
-const { Buffer } = require('buffer');
+const fs = require('fs');
+const os = require('os');
 
 const createDockerAPIClient = () => {
   const client = new http.HttpClient('github-action');
@@ -8,14 +9,22 @@ const createDockerAPIClient = () => {
   return client;
 }
 
-const dockerAPIGet = (client, token, owner, container) => async (resource) => {
-  const base64Token = Buffer.from(token).toString('base64');
-  const headers = {
-    Authorization: `Bearer ${base64Token}`
-  };
+const getDockerAuthToken = () => {
+  const dockerConfigPath = `${os.homedir()}/.docker/config.json`;
+  const dockerConfig = JSON.parse(fs.readFileSync(dockerConfigPath));
+  const auths = dockerConfig.auths;
+  const ghcrAuth = auths['ghcr.io'];
+  const authToken = ghcrAuth.auth;
 
-  console.log("headers:"+headers);
-  console.log("token:"+base64Token);
+  return authToken;
+};
+
+const dockerAPIGet = (client, owner, container) => async (resource) => {
+  const token = getDockerAuthToken();
+
+  const headers = {
+    Authorization: `Bearer ${token}`
+  };
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
 

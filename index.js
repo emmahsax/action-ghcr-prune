@@ -119,7 +119,7 @@ const run = async () => {
 
     if(pruneMultiPlatform) {
       const dockerAPIClient = createDockerAPIClient();
-      const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
+      const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, owner, container);
       const getManifestByTag = getManifest(dockerAPIGetCmd);
 
       const multiPlatPruningList = await getMultiPlatPruningList(listVersions, getManifestByTag)(pruningList);
