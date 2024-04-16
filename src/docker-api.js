@@ -27,7 +27,7 @@ const dockerAPIGet = (client, token, owner, container) => async (resource) => {
   console.log(`Docker API token: ${dockerToken}`)
 
   const headers = {
-    Accept: `application/vnd.docker.distribution.manifest.list.v2+json`,
+    Accept: `application/vnd.oci.image.index.v1+json`,
     Authorization: `Bearer ${dockerToken}`,
   };
 
