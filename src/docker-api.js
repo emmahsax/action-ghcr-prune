@@ -19,7 +19,7 @@ const dockerAPIGet = (client, token, owner, container) => async (resource) => {
   const response = await client.get(url, { headers });
 
   if (response.message.statusCode != 200) {
-    throw new Error(`Docker API request at ${url} was not successful`);
+    throw new Error(`Docker API request at ${url} was not successful. Status code: ${response.message.statusCode}, Status message: ${response.message.statusMessage}`);
   }
 
   return response;
