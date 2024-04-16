@@ -150,7 +150,7 @@ steps:
 
 **Optional** Boolean controlling whether untagged versions should be pruned (`true`) or not (`false`). Defaults to `false`.
 
-#### prunt-multi-platform
+#### prune-multi-platform
 
 **Optional** Boolean controlling whether to prune multi-platform images should
 be pruned (`true`) or not (`false`). Defaults to `false`.
