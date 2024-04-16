@@ -25,7 +25,8 @@ const dockerAPIGet = (client, owner, container) => async (resource) => {
   console.log(`Docker API token: ${token}`)
 
   const headers = {
-    Authorization: `Bearer ${token}`
+    Accept: `application/vnd.oci.image.index.v1+json`,
+    Authorization: `Bearer ${token}`,
   };
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
