@@ -1,7 +1,6 @@
 
 const http = require('@actions/http-client');
-const fs = require('fs');
-const os = require('os');
+const { execSync } = require('child_process');
 
 const createDockerAPIClient = () => {
   const client = new http.HttpClient('github-action');
@@ -9,24 +8,27 @@ const createDockerAPIClient = () => {
   return client;
 }
 
-const getDockerAuthToken = () => {
-  const dockerConfigPath = `${os.homedir()}/.docker/config.json`;
-  const dockerConfig = JSON.parse(fs.readFileSync(dockerConfigPath));
-  const auths = dockerConfig.auths;
-  const ghcrAuth = auths['ghcr.io'];
-  const authToken = ghcrAuth.auth;
+const getDockerAuthToken = (token, owner, container) => {
+  const command = `curl -u github:${token} -s "https://ghcr.io/token?service=ghcr.io&scope=repository%3A${owner}/${container}" | sed -n 's|.*"token":"\\([^"]*\\)".*|\\1|p'`;
+  let authToken;
+  try {
+    authToken = execSync(command).toString().trim();
+  } catch (error) {
+    console.log(`Failed to get Docker auth token: ${error.message}`);
+    throw error;
+  }
 
   return authToken;
 };
 
-const dockerAPIGet = (client, owner, container) => async (resource) => {
-  const token = getDockerAuthToken();
+const dockerAPIGet = (client, token, owner, container) => async (resource) => {
+  const dockerToken = getDockerAuthToken(token, owner, container);
 
-  console.log(`Docker API token: ${token}`)
+  console.log(`Docker API token: ${dockerToken}`)
 
   const headers = {
-    Accept: `application/vnd.oci.image.index.v1+json`,
-    Authorization: `Bearer ${token}`,
+    Accept: `application/vnd.docker.distribution.manifest.list.v2+json`,
+    Authorization: `Bearer ${dockerToken}`,
   };
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
