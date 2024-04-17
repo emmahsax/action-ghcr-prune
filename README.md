@@ -138,7 +138,7 @@ Each expression will be evaluated against all tags of a version.
 Any version with at least one tag matching the expression will be pruned.
 Disabled by default (ie. no versions pruned based on tags).
 
-:warning: **Please note:** Extra care should be taken when using `prune-tags-regexes`, please make sure you've read the [Word of caution](#word-of-caution)
+:warning: **Please note:** Extra care should be taken when using `prune-tags-regexes`, please make sure you've read the [Word of caution](#%EF%B8%8F-word-of-caution)
 
 
 For example, pruning all versions with tags starting with either `pr-` or `test-`:
