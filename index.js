@@ -142,8 +142,8 @@ const run = async () => {
       for (let i = pruningList.length - 1; i >= 0; i--) {
         const image = pruningList[i];
 
-        if (digests[image.name]) {
-          console.log("  Found digest "+ image.name +" in digests object, removing from pruning list");
+        if (digests.includes(image.name)) {
+          console.log("  Found digest "+image.name +" in digests array, removing from pruning list");
           pruningList.splice(i, 1);
         }
       }
