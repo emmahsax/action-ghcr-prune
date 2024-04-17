@@ -136,14 +136,10 @@ const run = async () => {
 
       console.log("Identified " + digests.length + " untagged images that are a part of a multi-arch image")
 
-      // 4. Do not prune an image if it is in the digests object
-      console.log(digests)
-
       for (let i = pruningList.length - 1; i >= 0; i--) {
         const image = pruningList[i];
 
         if (digests.includes(image.name)) {
-          console.log("  Found digest "+image.name +" in digests array, removing from pruning list");
           pruningList.splice(i, 1);
         }
       }

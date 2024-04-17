@@ -1,4 +1,3 @@
-
 const http = require('@actions/http-client');
 const { execSync } = require('child_process');
 
