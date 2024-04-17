@@ -121,6 +121,16 @@ steps:
 
 **Optional** Minimum age in days a version must have to qualify for pruning. All versions below that age at time of execution are excluded from pruning. Defaults to `0` which means no versions will be excluded from pruning.
 
+#### prune-multi-platform
+
+**Optional** Boolean controlling whether to prune multi-platform images should
+be pruned (`true`) or not (`false`). Defaults to `false`.
+
+Turning this on will force the removal of the untagged platform variants
+attached to the multi-platform image. Due to variants being untagged you cannot
+use this option with `prune-untagged`. You also must specify either `user` or
+`organization`.
+
 #### prune-tags-regexes
 
 **Optional** List of regular expressions for tags to prune, one per line.
@@ -149,16 +159,6 @@ steps:
 #### prune-untagged
 
 **Optional** Boolean controlling whether untagged versions should be pruned (`true`) or not (`false`). Defaults to `false`.
-
-#### prune-multi-platform
-
-**Optional** Boolean controlling whether to prune multi-platform images should
-be pruned (`true`) or not (`false`). Defaults to `false`.
-
-Turning this on will force the removal of the untagged platform variants
-attached to the multi-platform image. Due to variants being untagged you cannot
-use this option with `prune-untagged`. You also must specify either `user` or
-`organization`.
 
 ## Outputs
 
