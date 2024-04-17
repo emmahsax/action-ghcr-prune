@@ -142,9 +142,9 @@ const run = async () => {
       for (let i = pruningList.length - 1; i >= 0; i--) {
         const image = pruningList[i];
         console.log(image)
-        console.log(image.digest);
+        console.log(image.name);
 
-        if (!digests[image.digest]) {
+        if (!digests[image.name]) {
           console.log("  Found digest in digests object, removing from pruning list");
           pruningList.splice(i, 1);
         }
