@@ -127,6 +127,7 @@ const run = async () => {
         pruningList.push(...multiPlatPruningList);
       }
     } else if (pruneUntagged) {
+      console.log("made it into custom else if conditional")
       // 1. Get all the tags that are tagged
       const taggedVersions = listVersions.filter(version => version.tag);
       const dockerAPIClient = createDockerAPIClient();
@@ -136,13 +137,17 @@ const run = async () => {
       // 2. Go through each tagged image to determine if it's multi-arch by getting its manifest
       const digests = {};
       for (const tag of taggedVersions) {
+        console.log("tag "+tag+" is multi-arch?")
         const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, tag);
         const manifest = getManifest(dockerAPIGetCmd);
         if (manifest.mediaType === 'application/vnd.oci.image.index.v1+json') {
           // This is a multi-arch image, add all the digests from the manifests to the digests object
+          console.log("  true")
           for (const manifest of manifest.manifests) {
             digests[manifest.digest] = true;
           }
+        } else {
+          console.log("  false")
         }
       }
 
