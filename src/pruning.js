@@ -22,7 +22,7 @@ const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) =
 
   for (const image of allVersions)
   {
-    if (!image.metadata.container.tags)
+    if (image.metadata.container.tags.length == 0)
     {
       //no tags, so continue
       continue;
