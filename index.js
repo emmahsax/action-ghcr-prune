@@ -164,7 +164,9 @@ const run = async () => {
       console.log("Identified " + digests.length + " untagged images that are a part of a multi-arch image")
 
       // 4. Do not prune an image if it is in the digests object
-      for (const image of pruningList) {
+      let pruningListCopy = [...pruningList];
+
+      for (const image of pruningListCopy) {
         if (!digests[image.digest]) {
           let index = pruningList.indexOf(image);
             if (index !== -1) {
