@@ -6,19 +6,21 @@ const PAGE_SIZE = 100;
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
 const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
+  const allVersions = []
+  const digests = []
   let page = 1;
   let lastPageSize = 0;
-  const digests = []
 
   core.info('Crawling through all versions for multi-platform images...');
 
   do {
-    const versions = await listVersions(PAGE_SIZE, page);
+    const {data: versions} = await listVersions(PAGE_SIZE, page);
     lastPageSize = versions.length;
+    allVersions = [...allVersions, ...versions];
     page++;
   } while (lastPageSize >= PAGE_SIZE);
 
-  for (const image of versions)
+  for (const image of allVersions)
   {
     const manifest = await getManifest(image.metadata.container.tags[0]);
     if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
