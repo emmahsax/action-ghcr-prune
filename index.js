@@ -64,7 +64,7 @@ const run = async () => {
 
     const container = core.getInput('container');
 
-    const pruneMultiPlatform = asBoolean(core.getInput('prune-multi-platform'));
+    const removeMultiPlatform = asBoolean(core.getInput('remove-multi-platform'));
 
     const dryRun = asBoolean(core.getInput('dry-run'));
 
@@ -75,16 +75,16 @@ const run = async () => {
 
     const pruneUntagged = asBoolean(core.getInput('prune-untagged')) || asBoolean(core.getInput('untagged'))
 
-    if (pruneMultiPlatform && pruneUntagged) {
-      core.setFailed('Inputs `prune-multi-platform` and `prune-untagged` are mutually exclusive and must not both be provided in the same run.');
+    if (removeMultiPlatform && pruneUntagged) {
+      core.setFailed('Inputs `remove-multi-platform` and `prune-untagged` are mutually exclusive and must not both be provided in the same run.');
       return;
     }
 
     /* This can possibly be improved. We need this info for multi-platform due
        to the docker registry api, but we might be able to autodetect this from
        the authenticated user */
-    if (pruneMultiPlatform && !(organization || user)) {
-      core.setFailed('Inputs `prune-multi-platform` requires either `organization` or `user` to defined');
+    if (removeMultiPlatform && !(organization || user)) {
+      core.setFailed('Inputs `remove-multi-platform` requires either `organization` or `user` to defined');
       return;
     }
 
@@ -117,7 +117,7 @@ const run = async () => {
 
     const pruningList = await getPruningList(listVersions, filterVersion)(keepLast);
 
-    if (pruneMultiPlatform) {
+    if (removeMultiPlatform) {
       const dockerAPIClient = createDockerAPIClient();
       const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
       const getManifestByTag = getManifest(dockerAPIGetCmd);

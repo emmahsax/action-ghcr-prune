@@ -27,7 +27,7 @@ steps:
       prune-untagged: true
 ```
 
-For more pruning strategies, [see filters](#Filters).
+For more pruning strategies, [see filters](#mag-filters).
 
 ## Permissions
 
@@ -70,6 +70,16 @@ If neither are provided, then the packages of the authenticated user (cf. `token
 **Optional** Boolean controlling whether to execute the action as a dry-run. When `true` the action will print out details of the version that will be pruned without actually deleting them. Defaults to `false`.
 
 As this action is destructive, it's recommended to test any changes to the configuration of the action with a dry-run to ensure the expected versions are matched for pruning.
+
+### remove-multi-platform
+
+**Optional** Boolean controlling whether the child digests of multi-platform images should
+be pruned (`true`) or not (`false`). Defaults to `false`.
+
+Turning this on will force the removal of the untagged platform variants
+attached to multi-platform images. Due to variants being untagged you cannot
+use this option with `prune-untagged`. You also must specify either `user` or
+`organization`.
 
 ### :mag: Filters
 
@@ -121,16 +131,6 @@ steps:
 
 **Optional** Minimum age in days a version must have to qualify for pruning. All versions below that age at time of execution are excluded from pruning. Defaults to `0` which means no versions will be excluded from pruning.
 
-#### prune-multi-platform
-
-**Optional** Boolean controlling whether to prune multi-platform images should
-be pruned (`true`) or not (`false`). Defaults to `false`.
-
-Turning this on will force the removal of the untagged platform variants
-attached to the multi-platform image. Due to variants being untagged you cannot
-use this option with `prune-untagged`. You also must specify either `user` or
-`organization`.
-
 #### prune-tags-regexes
 
 **Optional** List of regular expressions for tags to prune, one per line.
@@ -158,7 +158,7 @@ steps:
 
 #### prune-untagged
 
-**Optional** Boolean controlling whether untagged versions should be pruned (`true`) or not (`false`). Defaults to `false`.
+**Optional** Boolean controlling whether untagged versions should be pruned (`true`) or not (`false`). Defaults to `false`. This action will not remove any untagged versions that are child digests of multi-platform images.
 
 ## Outputs
 
