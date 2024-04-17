@@ -22,6 +22,12 @@ const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) =
 
   for (const image of allVersions)
   {
+    if (!image.metadata.container.tags)
+    {
+      //no tags, so continue
+      continue;
+    }
+
     const manifest = await getManifest(image.metadata.container.tags[0]);
     if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
     {
