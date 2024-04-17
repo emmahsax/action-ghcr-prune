@@ -8,7 +8,7 @@ const {
   listOrgContainerVersions,
   listUserContainerVersions,
 } = require('./src/octokit');
-const {getMultiPlatPruningList, getPruningList, prune} = require('./src/pruning');
+const {getAllMultiPlatList, getMultiPlatPruningList, getPruningList, prune} = require('./src/pruning');
 const {versionFilter} = require('./src/version-filter');
 const {getManifest, createDockerAPIClient, dockerAPIGet} = require('./src/docker-api.js')
 
