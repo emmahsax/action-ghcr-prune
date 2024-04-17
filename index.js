@@ -117,7 +117,7 @@ const run = async () => {
 
     const pruningList = await getPruningList(listVersions, filterVersion)(keepLast);
 
-    if(pruneMultiPlatform) {
+    if (pruneMultiPlatform) {
       const dockerAPIClient = createDockerAPIClient();
       const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
       const getManifestByTag = getManifest(dockerAPIGetCmd);
@@ -125,6 +125,37 @@ const run = async () => {
       const multiPlatPruningList = await getMultiPlatPruningList(listVersions, getManifestByTag)(pruningList);
       if (multiPlatPruningList) {
         pruningList.push(...multiPlatPruningList);
+      }
+    } else if (pruneUntagged) {
+      // 1. Get all the tags that are tagged
+      const taggedVersions = listVersions.filter(version => version.tag);
+      const dockerAPIClient = createDockerAPIClient();
+
+      console.log(taggedVersions)
+
+      // 2. Go through each tagged image to determine if it's multi-arch by getting its manifest
+      const digests = {};
+      for (const tag of taggedVersions) {
+        const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, tag);
+        const manifest = getManifest(dockerAPIGetCmd);
+        if (manifest.mediaType === 'application/vnd.oci.image.index.v1+json') {
+          // This is a multi-arch image, add all the digests from the manifests to the digests object
+          for (const manifest of manifest.manifests) {
+            digests[manifest.digest] = true;
+          }
+        }
+      }
+
+      console.log(digests)
+
+      // 4. Do not prune an image if it is in the digests object
+      for (const image of pruningList) {
+        if (!digests[image.digest]) {
+          let index = pruningList.indexOf(item);
+            if (index !== -1) {
+              pruningList.splice(index, 1);
+            }
+        }
       }
     }
 
