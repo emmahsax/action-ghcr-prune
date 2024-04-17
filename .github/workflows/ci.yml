@@ -257,7 +257,7 @@ jobs:
           prune-tags-regexes: |
             ^pr-multi1$
           keep-tags-regexes: 2$
-          prune-multi-platform: true
+          remove-multi-platform: true
 
 
       - name: Expect 3 tagged versions to be pruned

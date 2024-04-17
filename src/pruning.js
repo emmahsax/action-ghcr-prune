@@ -5,6 +5,46 @@ const PAGE_SIZE = 100;
 
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
+const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
+  const digests = []
+  let allVersions = []
+  let lastPageSize = 0;
+  let page = 1;
+
+  core.info('Crawling through all versions for multi-platform images...');
+
+  do {
+    const {data: versions} = await listVersions(PAGE_SIZE, page);
+    lastPageSize = versions.length;
+    allVersions = [...allVersions, ...versions];
+    page++;
+  } while (lastPageSize >= PAGE_SIZE);
+
+  for (const image of allVersions)
+  {
+    if (image.metadata.container.tags.length == 0)
+    {
+      //no tags, so continue
+      continue;
+    }
+
+    const manifest = await getManifest(image.metadata.container.tags[0]);
+    if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
+    {
+      //not a multi-plat image, so continue
+      continue;
+    }
+
+    for (const subImage of manifest.manifests)
+    {
+      core.info(`Found subimage: ${subImage.digest}`)
+      digests.push(subImage.digest);
+    }
+  }
+
+  return digests;
+};
+
 const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningList) => {
   core.info('Crawling through pruning list for multi-platform images...');
 
@@ -13,7 +53,7 @@ const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningLis
   for (const image of pruningList)
   {
     const manifest = await getManifest(image.metadata.container.tags[0]);
-    if (manifest.mediaType != "application/vnd.docker.distribution.manifest.list.v2+json")
+    if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
     {
       //not a multi-plat image, so continue
       continue;
@@ -89,7 +129,8 @@ const prune = (pruneVersion) => async (pruningList) => {
 };
 
 module.exports = {
+  getAllMultiPlatList,
+  getMultiPlatPruningList,
   getPruningList,
   prune,
-  getMultiPlatPruningList
 };
