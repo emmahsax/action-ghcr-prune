@@ -141,6 +141,7 @@ const run = async () => {
 
       for (let i = pruningList.length - 1; i >= 0; i--) {
         const image = pruningList[i];
+        console.log(image)
         console.log(image.digest);
 
         if (!digests[image.digest]) {
