@@ -6,10 +6,10 @@ const PAGE_SIZE = 100;
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
 const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
-  const allVersions = []
   const digests = []
-  let page = 1;
+  let allVersions = []
   let lastPageSize = 0;
+  let page = 1;
 
   core.info('Crawling through all versions for multi-platform images...');
 
