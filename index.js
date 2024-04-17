@@ -161,12 +161,12 @@ const run = async () => {
 
       const digests = await getAllMultiPlatList(listVersions, getManifestByTag)(pruningList);
 
-      console.log(digests)
+      console.log("Identified " + digests.length + " untagged images that are a part of a multi-arch image")
 
       // 4. Do not prune an image if it is in the digests object
       for (const image of pruningList) {
         if (!digests[image.digest]) {
-          let index = pruningList.indexOf(item);
+          let index = pruningList.indexOf(image);
             if (index !== -1) {
               pruningList.splice(index, 1);
             }
