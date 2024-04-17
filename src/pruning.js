@@ -5,6 +5,38 @@ const PAGE_SIZE = 100;
 
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
+const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
+  let page = 1;
+  let lastPageSize = 0;
+  const digests = []
+
+  core.info('Crawling through all versions for multi-platform images...');
+
+  do {
+    const versions = await listVersions(PAGE_SIZE, page);
+    lastPageSize = versions.length;
+    page++;
+  } while (lastPageSize >= PAGE_SIZE);
+
+  for (const image of versions)
+  {
+    const manifest = await getManifest(image.metadata.container.tags[0]);
+    if (manifest.mediaType != "application/vnd.oci.image.index.v1+json")
+    {
+      //not a multi-plat image, so continue
+      continue;
+    }
+
+    for (const subImage of manifest.manifests)
+    {
+      core.info(`Found subimage: ${subImage.digest}`)
+      digests.push(subImage.digest);
+    }
+  }
+
+  return digests;
+};
+
 const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningList) => {
   core.info('Crawling through pruning list for multi-platform images...');
 
@@ -89,7 +121,8 @@ const prune = (pruneVersion) => async (pruningList) => {
 };
 
 module.exports = {
+  getAllMultiPlatList,
+  getMultiPlatPruningList,
   getPruningList,
   prune,
-  getMultiPlatPruningList
 };
