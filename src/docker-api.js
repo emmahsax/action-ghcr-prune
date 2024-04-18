@@ -1,5 +1,5 @@
 const http = require('@actions/http-client');
-const { execSync } = require('child_process');
+const { Buffer } = require('buffer');
 
 const createDockerAPIClient = () => {
   const client = new http.HttpClient('github-action');
@@ -7,36 +7,57 @@ const createDockerAPIClient = () => {
   return client;
 }
 
-const getDockerAuthToken = (token, owner, container) => {
-  const command = `curl -u github:${token} -s "https://ghcr.io/token?service=ghcr.io&scope=repository%3A${owner}/${container}" | sed -n 's|.*"token":"\\([^"]*\\)".*|\\1|p'`;
-  let authToken;
-  try {
-    authToken = execSync(command).toString().trim();
-  } catch (error) {
-    console.log(`Failed to get Docker auth token: ${error.message}`);
-    throw error;
-  }
-
-  return authToken;
-};
-
-const dockerAPIGet = (client, token, owner, container) => async (resource) => {
-  const dockerToken = getDockerAuthToken(token, owner, container);
-
+const dockerManifestV1 = (client, token, url) => async (resource) => {
   const headers = {
     Accept: `application/vnd.oci.image.index.v1+json`,
-    Authorization: `Bearer ${dockerToken}`,
+    Authorization: `Bearer ${token}`,
   };
-
-  const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
 
   const response = await client.get(url, headers);
 
   if (response.message.statusCode != 200) {
-    throw new Error(`Docker API request at ${url} was not successful. Status code: ${response.message.statusCode}, Status message: ${response.message.statusMessage}`);
+    return {
+      success: false,
+      code: response.message.statusCode,
+      message: response.message.statusMessage
+    };
   }
 
-  return response;
+  return { success: true, resp: response };
+}
+
+const dockerManifestV2 = (client, token, url) => async (resource) => {
+  const headers = {
+    Accept: `application/vnd.docker.distribution.manifest.v2+json`,
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await client.get(url, headers);
+
+  if (response.message.statusCode != 200) {
+    return {
+      success: false,
+      code: response.message.statusCode,
+      message: response.message.statusMessage
+    };
+  }
+
+  return { success: true, resp: response };
+}
+
+const dockerAPIGet = (client, token, owner, container) => async (resource) => {
+  const base64Token = Buffer.from(token).toString('base64');
+  const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
+  responseV1 = await dockerManifestV1(client, base64Token, url)(resource);
+  responseV2 = await dockerManifestV2(client, base64Token, url)(resource);
+
+  if (responseV1['success']) {
+    return responseV1['resp'];
+  } else if (responseV2['success']) {
+    return responseV2['resp'];
+  } else {
+    throw new Error(`All Docker API requests at ${url} were unsuccessful. Docker manifest v1 status code ${responseV1['code']} (${responseV1['message']}). Docker manifest v2 status code ${responseV2['code']} (${responseV2['message']}).`);
+  }
 }
 
 const getManifest = (getCmd) => async (tag) => {
