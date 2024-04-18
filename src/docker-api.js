@@ -1,5 +1,6 @@
 const http = require('@actions/http-client');
-const { execSync } = require('child_process');
+const { Buffer } = require('buffer');
+// const { execSync } = require('child_process');
 
 const createDockerAPIClient = () => {
   const client = new http.HttpClient('github-action');
@@ -7,25 +8,27 @@ const createDockerAPIClient = () => {
   return client;
 }
 
-const getDockerAuthToken = (token, owner, container) => {
-  const command = `curl -u github:${token} -s "https://ghcr.io/token?service=ghcr.io&scope=repository%3A${owner}/${container}" | sed -n 's|.*"token":"\\([^"]*\\)".*|\\1|p'`;
-  let authToken;
-  try {
-    authToken = execSync(command).toString().trim();
-  } catch (error) {
-    console.log(`Failed to get Docker auth token: ${error.message}`);
-    throw error;
-  }
+// const getDockerAuthToken = (token, owner, container) => {
+//   const command = `curl -u github:${token} -s "https://ghcr.io/token?service=ghcr.io&scope=repository%3A${owner}/${container}" | sed -n 's|.*"token":"\\([^"]*\\)".*|\\1|p'`;
+//   let authToken;
+//   try {
+//     authToken = execSync(command).toString().trim();
+//   } catch (error) {
+//     console.log(`Failed to get Docker auth token: ${error.message}`);
+//     throw error;
+//   }
 
-  return authToken;
-};
+//   return authToken;
+// };
 
 const dockerAPIGet = (client, token, owner, container) => async (resource) => {
-  const dockerToken = getDockerAuthToken(token, owner, container);
+  const base64Token = Buffer.from(token).toString('base64');
+
+  // const dockerToken = getDockerAuthToken(token, owner, container);
 
   const headers = {
     Accept: `application/vnd.oci.image.index.v1+json`,
-    Authorization: `Bearer ${dockerToken}`,
+    Authorization: `Bearer ${base64Token}`,
   };
 
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
