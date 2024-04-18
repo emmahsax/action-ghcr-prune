@@ -56,7 +56,7 @@ const dockerAPIGet = (client, token, owner, container) => async (resource) => {
   } else if (responseV2['success']) {
     return responseV2['resp'];
   } else {
-    throw new Error(`All Docker API requests at ${url} were unsuccessful. Docker manifest v1: status code - ${responseV1['code']}, status message - ${responseV1['message']}. Docker manifest v2: status code - ${responseV2['code']}, status message - ${responseV2['message']}`);
+    throw new Error(`All Docker API requests at ${url} were unsuccessful. Docker manifest v1 status code ${responseV1['code']} (${responseV1['message']}). Docker manifest v2 status code ${responseV2['code']} (${responseV2['message']}).`);
   }
 }
 
