@@ -48,8 +48,8 @@ const dockerManifestV2 = (client, token, url) => async (resource) => {
 const dockerAPIGet = (client, token, owner, container) => async (resource) => {
   const base64Token = Buffer.from(token).toString('base64');
   const url = `https://ghcr.io/v2/${owner}/${container}/${resource}`;
-  responseV1 = dockerManifestV1(client, base64Token, url)(resource);
-  responseV2 = dockerManifestV2(client, base64Token, url)(resource);
+  responseV1 = await dockerManifestV1(client, base64Token, url)(resource);
+  responseV2 = await dockerManifestV2(client, base64Token, url)(resource);
 
   if (responseV1['success']) {
     return responseV1['resp'];
