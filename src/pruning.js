@@ -18,6 +18,7 @@ const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) =
   core.info('Crawling through all versions for multi-platform images...');
 
   do {
+    core.info('Fetching page ' + page + ' of versions...')
     const {data: versions} = await listVersions(PAGE_SIZE, page);
     lastPageSize = versions.length;
     allVersions = [...allVersions, ...versions];
@@ -26,12 +27,14 @@ const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) =
 
   for (const image of allVersions)
   {
+    core.info(`Checking image: ${image.metadata.container.tags[0]}`)
     if (image.metadata.container.tags.length == 0)
     {
       //no tags, so continue
       continue;
     }
 
+    core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]}`)
     const manifest = await getManifest(image.metadata.container.tags[0]);
     if (!multiPlatImage(manifest.mediaType))
     {
