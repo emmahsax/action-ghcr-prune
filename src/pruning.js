@@ -61,17 +61,13 @@ const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningLis
 
   for (const image of pruningList)
   {
-    core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]} in getMultiPlatPruningList`)
     const manifest = await getManifest(image.metadata.container.tags[0]);
-    core.info(`Media type: ${manifest.mediaType}`)
-    core.info(`Nested Manifests: ${JSON.stringify(manifest.manifests)}`)
     if (!multiPlatImage(manifest))
     {
       //not a multi-plat image, so continue
       continue;
     }
 
-    core.info(`Beginning loop over manifests for image: ${image.metadata.container.tags[0]}`)
     for (const subImage of manifest.manifests)
     {
       core.info(`Found subimage: ${subImage.digest}`)
