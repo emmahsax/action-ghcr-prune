@@ -132,9 +132,9 @@ const run = async () => {
       const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
       const getManifestByTag = getManifest(dockerAPIGetCmd);
 
-      const digests = await getAllMultiPlatList(listVersions, getManifestByTag)(pruningList);
+      const digests = await getAllMultiPlatList(listVersions, getManifestByTag)();
 
-      console.log("Identified " + digests.length + " untagged images that are a part of a multi-arch image")
+      console.log("Identified " + digests.length + " untagged images that are a part of a tagged multi-arch image")
 
       for (let i = pruningList.length - 1; i >= 0; i--) {
         const image = pruningList[i];
