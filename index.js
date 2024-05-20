@@ -8,7 +8,7 @@ const {
   listOrgContainerVersions,
   listUserContainerVersions,
 } = require('./src/octokit');
-const {getAllMultiPlatList, getMultiPlatPruningList, getPruningList, prune} = require('./src/pruning');
+const {getMultiPlatPruningList, getPruningList, getUntaggedMultiPlatList, prune} = require('./src/pruning');
 const {versionFilter} = require('./src/version-filter');
 const {getManifest, createDockerAPIClient, dockerAPIGet} = require('./src/docker-api.js')
 
@@ -132,7 +132,7 @@ const run = async () => {
       const dockerAPIGetCmd = dockerAPIGet(dockerAPIClient, token, owner, container);
       const getManifestByTag = getManifest(dockerAPIGetCmd);
 
-      const digests = await getAllMultiPlatList(listVersions, getManifestByTag)(pruningList);
+      const digests = await getUntaggedMultiPlatList(listVersions, getManifestByTag)(pruningList);
 
       console.log("Identified " + digests.length + " untagged images that are a part of a multi-arch image")
 

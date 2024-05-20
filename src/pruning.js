@@ -9,13 +9,13 @@ const multiPlatImage = (mediaType) = async () => {
   return mediaType == "application/vnd.oci.image.index.v1+json" || mediaType == "application/vnd.docker.distribution.manifest.v2+json"
 }
 
-const getAllMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
+const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
   const digests = []
   let allVersions = []
   let lastPageSize = 0;
   let page = 1;
 
-  core.info('Crawling through all versions for multi-platform images...');
+  core.info('Crawling through untagged images for multi-platform images...');
 
   do {
     core.info('Fetching page ' + page + ' of versions...')
@@ -136,7 +136,7 @@ const prune = (pruneVersion) => async (pruningList) => {
 };
 
 module.exports = {
-  getAllMultiPlatList,
+  getUntaggedMultiPlatList,
   getMultiPlatPruningList,
   getPruningList,
   prune,
