@@ -5,7 +5,7 @@ const PAGE_SIZE = 100;
 
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
-const multiPlatImage = (manifest) = async () => {
+const multiPlatImage = (manifest) => {
   if (manifest.manifests == undefined)
   {
     return false;
