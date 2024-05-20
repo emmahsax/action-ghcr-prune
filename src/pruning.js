@@ -9,49 +9,6 @@ const multiPlatImage = (mediaType) = async () => {
   return mediaType == "application/vnd.oci.image.index.v1+json" || mediaType == "application/vnd.docker.distribution.manifest.v2+json"
 }
 
-const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
-  const digests = []
-  let allVersions = []
-  let lastPageSize = 0;
-  let page = 1;
-
-  core.info('Crawling through untagged images for multi-platform images...');
-
-  do {
-    core.info('Fetching page ' + page + ' of versions...')
-    const {data: versions} = await listVersions(PAGE_SIZE, page);
-    lastPageSize = versions.length;
-    allVersions = [...allVersions, ...versions];
-    page++;
-  } while (lastPageSize >= PAGE_SIZE);
-
-  for (const image of allVersions)
-  {
-    core.info(`Checking image: ${image.metadata.container.tags[0]}`)
-    if (image.metadata.container.tags.length == 0)
-    {
-      //no tags, so continue
-      continue;
-    }
-
-    core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]}`)
-    const manifest = await getManifest(image.metadata.container.tags[0]);
-    if (!multiPlatImage(manifest.mediaType))
-    {
-      //not a multi-plat image, so continue
-      continue;
-    }
-
-    for (const subImage of manifest.manifests)
-    {
-      core.info(`Found subimage: ${subImage.digest}`)
-      digests.push(subImage.digest);
-    }
-  }
-
-  return digests;
-};
-
 const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningList) => {
   core.info('Crawling through pruning list for multi-platform images...');
 
@@ -59,7 +16,9 @@ const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningLis
 
   for (const image of pruningList)
   {
+    core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]} in getMultiPlatPruningList`)
     const manifest = await getManifest(image.metadata.container.tags[0]);
+    core.info(`Made it underneath getManifest call for ${image.metadata.container.tags[0]}`)
     if (!multiPlatImage(manifest.mediaType))
     {
       //not a multi-plat image, so continue
@@ -111,6 +70,52 @@ const getPruningList = (listVersions, pruningFilter) => async (keepLast = 0) => 
   }
 
   return pruningList;
+};
+
+const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningList) => {
+  const digests = []
+  let allVersions = []
+  let lastPageSize = 0;
+  let page = 1;
+
+  core.info('Crawling through untagged images for multi-platform images...');
+
+  do {
+    core.info('Fetching page ' + page + ' of versions...')
+    const {data: versions} = await listVersions(PAGE_SIZE, page);
+    lastPageSize = versions.length;
+    allVersions = [...allVersions, ...versions];
+    page++;
+  } while (lastPageSize >= PAGE_SIZE);
+
+  for (const image of allVersions)
+  {
+    core.info(`Checking image: ${image.metadata.container.tags[0]}`)
+    if (image.metadata.container.tags.length == 0)
+    {
+      //no tags, so continue
+      continue;
+    }
+
+    core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]} in getUntaggedMultiPlatList`)
+    const manifest = await getManifest(image.metadata.container.tags[0]);
+    core.info(`Made it underneath getManifest call for ${image.metadata.container.tags[0]}`)
+    core.info(`Media type: ${manifest.mediaType}`)
+    if (!multiPlatImage(manifest.mediaType))
+    {
+      //not a multi-plat image, so continue
+      continue;
+    }
+
+    core.info(`Beginning loop over manifests`)
+    for (const subImage of manifest.manifests)
+    {
+      core.info(`Found subimage: ${subImage.digest}`)
+      digests.push(subImage.digest);
+    }
+  }
+
+  return digests;
 };
 
 const prune = (pruneVersion) => async (pruningList) => {
