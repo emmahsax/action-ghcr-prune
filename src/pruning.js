@@ -5,8 +5,13 @@ const PAGE_SIZE = 100;
 
 const sortByVersionCreationDesc = (first, second) => - first.created_at.localeCompare(second.created_at);
 
-const multiPlatImage = (mediaType) = async () => {
-  return mediaType == "application/vnd.oci.image.index.v1+json" || mediaType == "application/vnd.docker.distribution.manifest.v2+json"
+const multiPlatImage = (manifest) = async () => {
+  if (manifest.manifests == undefined)
+  {
+    return false;
+  }
+  return manifest.mediaType == "application/vnd.oci.image.index.v1+json" ||
+         manifest.mediaType == "application/vnd.docker.distribution.manifest.v2+json"
 }
 
 const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningList) => {
@@ -18,13 +23,15 @@ const getMultiPlatPruningList = (listVersions, getManifest) => async (pruningLis
   {
     core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]} in getMultiPlatPruningList`)
     const manifest = await getManifest(image.metadata.container.tags[0]);
-    core.info(`Made it underneath getManifest call for ${image.metadata.container.tags[0]}`)
-    if (!multiPlatImage(manifest.mediaType))
+    core.info(`Media type: ${manifest.mediaType}`)
+    core.info(`Nested Manifests: ${JSON.stringify(manifest.manifests)}`)
+    if (!multiPlatImage(manifest))
     {
       //not a multi-plat image, so continue
       continue;
     }
 
+    core.info(`Beginning loop over manifests for image: ${image.metadata.container.tags[0]}`)
     for (const subImage of manifest.manifests)
     {
       core.info(`Found subimage: ${subImage.digest}`)
@@ -81,7 +88,6 @@ const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningLi
   core.info('Crawling through untagged images for multi-platform images...');
 
   do {
-    core.info('Fetching page ' + page + ' of versions...')
     const {data: versions} = await listVersions(PAGE_SIZE, page);
     lastPageSize = versions.length;
     allVersions = [...allVersions, ...versions];
@@ -90,7 +96,6 @@ const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningLi
 
   for (const image of allVersions)
   {
-    core.info(`Checking image: ${image.metadata.container.tags[0]}`)
     if (image.metadata.container.tags.length == 0)
     {
       //no tags, so continue
@@ -99,16 +104,15 @@ const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningLi
 
     core.info(`Fetching manifest for image: ${image.metadata.container.tags[0]} in getUntaggedMultiPlatList`)
     const manifest = await getManifest(image.metadata.container.tags[0]);
-    core.info(`Made it underneath getManifest call for ${image.metadata.container.tags[0]}`)
     core.info(`Media type: ${manifest.mediaType}`)
-    core.info(`Manifest: ${JSON.stringify(manifest)}`)
-    if (!multiPlatImage(manifest.mediaType))
+    core.info(`Nested Manifests: ${JSON.stringify(manifest.manifests)}`)
+    if (!multiPlatImage(manifest))
     {
       //not a multi-plat image, so continue
       continue;
     }
 
-    core.info(`Beginning loop over manifests`)
+    core.info(`Beginning loop over manifests for image: ${image.metadata.container.tags[0]}`)
     for (const subImage of manifest.manifests)
     {
       core.info(`Found subimage: ${subImage.digest}`)
