@@ -101,6 +101,7 @@ const getUntaggedMultiPlatList = (listVersions, getManifest) => async (pruningLi
     const manifest = await getManifest(image.metadata.container.tags[0]);
     core.info(`Made it underneath getManifest call for ${image.metadata.container.tags[0]}`)
     core.info(`Media type: ${manifest.mediaType}`)
+    core.info(`Manifest: ${JSON.stringify(manifest)}`)
     if (!multiPlatImage(manifest.mediaType))
     {
       //not a multi-plat image, so continue
